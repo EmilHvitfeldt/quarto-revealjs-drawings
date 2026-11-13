@@ -1,0 +1,26 @@
+/*-- scss:rules --*/
+
+// With a 1280x720 slide, these borders make the whole letterbox frame
+// 1440x810, which is exactly 16:9, the shape of a drawing.
+// The letterbox theme sets its own values without !default, so they have to
+// be set here, after the theme's rules, rather than in a defaults layer.
+$border-leftright-width: 80px;
+$border-updown-width: 45px;
+
+.slides {
+  border-top-width: $border-updown-width;
+  border-bottom-width: $border-updown-width;
+}
+
+.reveal .progress {
+  bottom: -$border-updown-width;
+}
+
+// Stretch each drawing over the whole frame, borders included, like a background.
+.reveal .slides section .drawing {
+  position: absolute;
+  top: -$border-updown-width;
+  left: -$border-leftright-width;
+  width: calc(1280px + #{$border-leftright-width} * 2) !important;
+  margin: 0;
+}

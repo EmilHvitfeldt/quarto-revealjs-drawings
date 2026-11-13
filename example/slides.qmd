@@ -1,0 +1,27 @@
+---
+pagetitle: Drawings in slides
+format:
+  letterbox-revealjs:
+    embed-resources: true
+    width: 1280
+    height: 720
+    progress: false
+    menu: false
+    theme: [default, style.scss]
+revealjs-plugins:
+  - drawings
+---
+
+{{< drawing data/2.json >}}
+
+---
+
+{{< drawing data/3.json auto=true >}}
+
+---
+
+{{< drawing data/5.json auto=true speed=2 >}}
+
+---
+
+{{< drawing data/kitty.json auto=true >}}
