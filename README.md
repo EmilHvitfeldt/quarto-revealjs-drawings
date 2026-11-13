@@ -26,7 +26,7 @@ revealjs-plugins:
 {{< drawing drawing.json >}}
 ```
 
-A drawing is a `.json` file holding timed strokes (see below) and optional stopping points, called cues. Cues split the animation into segments: n cues make n + 1 segments, and each click plays the next one. Pressing next while a segment is still playing finishes it instantly instead of leaving the slide, and the following press moves on. Stepping back jumps to where the previous segment ended. Fragments of the drawing mix with the slide's other fragments in the order they appear.
+A drawing is a `.json` file holding timed strokes (see below) and optional stopping points, called cues. Cues split the animation into segments: n cues make n + 1 segments, and each click plays the next one. Pressing next while a segment is still playing finishes it instantly instead of leaving the slide, and the following press moves on. Stepping back undraws smoothly to where the previous segment ended (about three times faster than it was drawn, and never longer than 1.5 seconds). You can change direction at any moment: going back or forward halfway through a segment redirects from what is on screen right now instead of jumping, and pressing next while it is undrawing starts drawing forward again from there. Fragments of the drawing mix with the slide's other fragments in the order they appear.
 
 Options, all optional:
 

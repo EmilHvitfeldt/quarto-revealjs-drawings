@@ -15,6 +15,9 @@
 
 (() => {
   const MIN_LENGTH_MS = 500;
+  // Stepping back undraws this many times faster than drawing, finishing within the cap.
+  const REVERSE_SPEED = 3;
+  const REVERSE_MAX_MS = 1500;
   const MAX_DPR = 2;
   const MAX_WIDTH_PX = 2560;
   // Reveal's pdf-ready layout and window resizes both settle over a few frames.
@@ -75,6 +78,7 @@
       this.target = 0;
       this.frame = 0;
       this.lastFrameTime = 0;
+      this.rate = this.speed;
       this.sizeKey = "";
       this.tick = this.tick.bind(this);
 
@@ -188,20 +192,27 @@
       this.render(this.nowMs);
     }
 
-    /** Moves to the end of segment `done`: plays there when `animate` and it is ahead, otherwise jumps. */
+    /**
+     * Moves to the end of segment `done`. With `animate` it plays there from
+     * wherever the playhead is right now, forwards or backwards, so changing
+     * direction mid-segment redirects from the live picture instead of snapping.
+     * Without it, it jumps.
+     */
     goTo(done, animate) {
       const times = this.times;
       this.done = Math.max(0, Math.min(done, times.length - 1));
       if (!this.active) return;
 
       const ms = times[this.done];
-      if (animate && ms > this.nowMs) {
+      if (animate && ms !== this.nowMs) {
         this.target = ms;
+        // Going back plays faster than the drawing was made, but never takes long.
+        this.rate = ms > this.nowMs ? this.speed : Math.max(this.speed * REVERSE_SPEED, (this.nowMs - ms) / REVERSE_MAX_MS);
         if (!this.frame) {
           this.lastFrameTime = 0;
           this.frame = requestAnimationFrame(this.tick);
-          this.root.dataset.playing = "true";
         }
+        this.root.dataset.playing = "true";
       } else {
         this.stop();
         this.render(ms);
@@ -214,8 +225,9 @@
       this.root.dataset.playing = "false";
     }
 
+    /** Drawing forwards right now (a reverse in progress doesn't count: Next should redirect it, not skip it). */
     get isPlaying() {
-      return this.frame !== 0;
+      return this.frame !== 0 && this.target > this.nowMs;
     }
 
     /** Jumps to the end of the segment that is playing. */
@@ -229,9 +241,10 @@
       const dtMs = this.lastFrameTime ? Math.min(time - this.lastFrameTime, 100) : 1000 / 60;
       this.lastFrameTime = time;
 
-      const next = Math.min(this.nowMs + dtMs * this.speed, this.target);
+      const step = dtMs * this.rate;
+      const next = this.target > this.nowMs ? Math.min(this.nowMs + step, this.target) : Math.max(this.nowMs - step, this.target);
       this.render(next);
-      if (this.target - next > 0.5) {
+      if (Math.abs(this.target - next) > 0.5) {
         this.frame = requestAnimationFrame(this.tick);
       } else {
         this.render(this.target);
@@ -239,9 +252,9 @@
       }
     }
 
-    /** A fragment of this drawing was shown or hidden. */
-    fragmentChanged(shown) {
-      this.goTo(this.segmentsDone, shown);
+    /** A fragment of this drawing was shown or hidden: head for the segment boundary it now stands on. */
+    fragmentChanged() {
+      this.goTo(this.segmentsDone, true);
     }
   }
 
@@ -281,7 +294,7 @@
 
       const onFragments = (shown) => (event) => {
         for (const fragment of event.fragments ?? []) {
-          if (fragment.classList.contains("drawing-step")) forStep(fragment)?.fragmentChanged(shown);
+          if (fragment.classList.contains("drawing-step")) forStep(fragment)?.fragmentChanged();
         }
       };
       deck.on("fragmentshown", onFragments(true));
