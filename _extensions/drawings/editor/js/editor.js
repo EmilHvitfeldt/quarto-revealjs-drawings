@@ -863,10 +863,9 @@ function applyTimeFactor(factor) {
 
 function syncTimeScope() {
   const count = selectedStrokes().length;
-  $("time-scope").textContent = count > 0 ? `Applies to the ${count} selected stroke${count === 1 ? "" : "s"}.` : "Nothing selected: applies to the whole animation.";
+  $("time-scope").textContent = count > 0 ? `Applies to the ${count} selected stroke${count === 1 ? "" : "s"}.` : "Applies to the whole animation. Select strokes to change only those.";
 }
 
-$("time-apply").addEventListener("click", () => applyTimeFactor(Number($("time-factor").value)));
 for (const button of document.querySelectorAll(".time-preset")) {
   button.addEventListener("click", () => applyTimeFactor(Number(button.dataset.factor)));
 }
