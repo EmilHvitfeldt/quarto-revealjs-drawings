@@ -79,6 +79,8 @@
       this.frame = 0;
       this.lastFrameTime = 0;
       this.rate = this.speed;
+      // Set when Back undrew the segment that plays by itself, so the next Next replays it.
+      this.rewound = false;
       this.sizeKey = "";
       this.tick = this.tick.bind(this);
 
@@ -168,6 +170,7 @@
     enter() {
       const done = this.segmentsDone;
       this.active = true;
+      this.rewound = false;
       this.layout();
       this.goTo(done, false);
       if (this.auto && done === 1) {
@@ -252,6 +255,25 @@
       }
     }
 
+    /**
+     * The segment that plays by itself has no fragment of its own, so Back would
+     * leave the slide. While it is drawing, Back undraws it instead.
+     */
+    get canRewind() {
+      return this.active && this.auto && this.done === 1 && this.isPlaying;
+    }
+
+    rewind() {
+      this.rewound = true;
+      this.goTo(0, true);
+    }
+
+    /** Next after a rewind draws the first segment again, from wherever the undraw had got to. */
+    replay() {
+      this.rewound = false;
+      this.goTo(1, true);
+    }
+
     /** A fragment of this drawing was shown or hidden: head for the segment boundary it now stands on. */
     fragmentChanged() {
       this.goTo(this.segmentsDone, true);
@@ -300,34 +322,50 @@
       deck.on("fragmentshown", onFragments(true));
       deck.on("fragmenthidden", onFragments(false));
 
-      // Next while a drawing is still playing finishes it first, and only the
-      // following press moves on. Capture phase runs before Reveal's handlers.
-      const finishPlaying = () => {
+      // Capture phase runs before Reveal's handlers, so these can claim a press.
+      // Next while a drawing is still drawing finishes it first, and only the
+      // following press moves on. Next after Back undrew the first segment draws
+      // it again. Back while the first segment is drawing undraws it instead of
+      // leaving the slide. (Back during later segments hides their fragment, which
+      // Reveal does and fragmentChanged turns into an undraw.)
+      const onNext = () => {
+        const rewound = embeds.filter((embed) => embed.active && embed.rewound);
+        if (rewound.length > 0) {
+          rewound.forEach((embed) => embed.replay());
+          return true;
+        }
         const playing = embeds.filter((embed) => embed.active && embed.isPlaying);
         playing.forEach((embed) => embed.finish());
         return playing.length > 0;
       };
+      const onBack = () => {
+        const rewinding = embeds.filter((embed) => embed.canRewind);
+        rewinding.forEach((embed) => embed.rewind());
+        return rewinding.length > 0;
+      };
       const NEXT_KEYS = new Set(["ArrowRight", "ArrowDown", "PageDown", " ", "n", "N"]);
+      const BACK_KEYS = new Set(["ArrowLeft", "ArrowUp", "PageUp", "p", "P"]);
+      const claim = (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
       document.addEventListener(
         "keydown",
         (event) => {
           if (event.altKey || event.ctrlKey || event.metaKey) return;
-          if (!NEXT_KEYS.has(event.key) || (event.key === " " && event.shiftKey)) return;
-          if (finishPlaying()) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-          }
+          const back = BACK_KEYS.has(event.key) || (event.key === " " && event.shiftKey);
+          const next = NEXT_KEYS.has(event.key) && !(event.key === " " && event.shiftKey);
+          if ((back && onBack()) || (next && onNext())) claim(event);
         },
         true
       );
       deck.getRevealElement().addEventListener(
         "click",
         (event) => {
-          if (!event.target.closest?.(".navigate-right, .navigate-down")) return;
-          if (finishPlaying()) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-          }
+          const target = event.target.closest?.(".navigate-left, .navigate-up, .navigate-right, .navigate-down");
+          if (!target) return;
+          const back = target.matches(".navigate-left, .navigate-up");
+          if (back ? onBack() : onNext()) claim(event);
         },
         true
       );
