@@ -11,20 +11,16 @@
 //     points: [{ x, y, pressure, t }],  // x/y normalized to the stage (0..1),
 //                                       // t = ms since the stroke began at speed 1
 //   }
-// Classic script (see random.js for why).
-
-const DEFAULT_TAIL_MS = 1000;
+// Classic script: shares one global scope with the other files.
 
 class Project {
   constructor() {
     this.strokes = [];
     this.nextId = 1;
     // Pause points for slides: [{ ms }], sorted. A Quarto revealjs fragment
-    // plays the animation up to the next one (see embed.js). They don't change
+    // plays the animation up to the next one (see drawings.js). They don't change
     // the picture, so editing them never re-renders and isn't part of undo.
     this.cues = [];
-    // Saved with the project. `tailMs` is how long the timeline runs after the last stroke ends.
-    this.settings = { tailMs: DEFAULT_TAIL_MS };
     this.undoStack = [];
     this.redoStack = [];
     this.lastCheckpointKey = null;
@@ -158,7 +154,7 @@ class Project {
   }
 
   toJSON() {
-    return { version: 1, settings: this.settings, cues: this.cues, strokes: this.strokes };
+    return { version: 1, cues: this.cues, strokes: this.strokes };
   }
 
   /**
@@ -191,7 +187,6 @@ class Project {
       });
 
     this.checkpoint();
-    if (!Array.isArray(data) && data.settings?.tailMs >= 0) this.settings = { tailMs: data.settings.tailMs };
     this.cues = Array.isArray(data) || !Array.isArray(data.cues)
       ? []
       : data.cues.filter((cue) => cue?.ms > 0).map((cue) => ({ ms: cue.ms })).sort((a, b) => a.ms - b.ms);

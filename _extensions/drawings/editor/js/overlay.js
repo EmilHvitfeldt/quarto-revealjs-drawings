@@ -1,7 +1,7 @@
 // A reference image shown over (or under) the painting for tracing. It's
 // purely a view aid: it never touches the simulation and isn't saved with
 // the project.
-// Classic script (see random.js for why).
+// Classic script: shares one global scope with the other files.
 
 class TraceOverlay {
   constructor({ image, stage, onChange }) {

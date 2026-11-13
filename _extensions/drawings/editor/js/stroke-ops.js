@@ -6,7 +6,7 @@
 //
 // Times: `ms` arguments are on the global timeline. A point's `t` is ms since
 // its stroke began at speed 1, so timeline time = stroke.start + t / speed.
-// Classic script (see random.js for why).
+// Classic script: shares one global scope with the other files.
 
 const StrokeOps = {
   round(value) {

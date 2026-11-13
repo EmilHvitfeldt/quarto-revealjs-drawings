@@ -13,7 +13,7 @@
 //
 // All positions are normalized to the stage (0..1). Distances (arc length,
 // handle mirroring) are measured in pixels, so pass the stage's size.
-// Classic script (see random.js for why).
+// Classic script: shares one global scope with the other files.
 
 const CurveEdit = {
   MAX_ANCHORS: 16,

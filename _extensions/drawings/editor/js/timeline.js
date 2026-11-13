@@ -1,7 +1,7 @@
 // The track view under the canvas: one clip per stroke, a ruler you can
 // scrub, and a playhead. Dragging a clip retimes the stroke; dragging its
 // right edge stretches it (changes that stroke's speed).
-// Classic script (see random.js for why).
+// Classic script: shares one global scope with the other files.
 
 const CLIP_HEIGHT = 20;
 const LANE_GAP = 3;

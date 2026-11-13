@@ -53,7 +53,7 @@ const selectedStrokes = () => {
   const ids = new Set([selectedId, ...timeline.group]);
   return project.strokes.filter((stroke) => ids.has(stroke.id));
 };
-const lengthMs = () => Math.max(project.endMs + project.settings.tailMs, MIN_LENGTH_MS);
+const lengthMs = () => Math.max(project.endMs, MIN_LENGTH_MS);
 const playheadMs = () => pendingSeek ?? player.nowMs;
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 
@@ -137,7 +137,6 @@ function syncInspector() {
   sizeSlider.value = String(source.size);
   $("size-output").textContent = source.size.toFixed(2);
 
-  syncPaintSettings();
   $("stroke-extras").hidden = !stroke;
   const pointCount = selectedStrokes().reduce((sum, item) => sum + item.points.length, 0);
   $("show-points-label").textContent = `Show every point (${pointCount})`;
@@ -172,19 +171,6 @@ penColors.forEach((color, index) => {
   button.addEventListener("click", () => setBrush({ color: { ...color } }, "color"));
   paletteElement.appendChild(button);
 });
-
-function syncPaintSettings() {
-  $("tail-slider").value = String(project.settings.tailMs / 1000);
-  $("tail-output").textContent = `${(project.settings.tailMs / 1000).toFixed(1)}s`;
-}
-
-// Only the timeline length changes, not the painting, so no re-render.
-$("tail-slider").addEventListener("input", (event) => {
-  project.settings.tailMs = Number(event.target.value) * 1000;
-  syncPaintSettings();
-  project.emit("layout");
-});
-syncPaintSettings();
 
 sizeSlider.addEventListener("input", () => setBrush({ size: Number(sizeSlider.value) }, "size"));
 

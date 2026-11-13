@@ -36,7 +36,6 @@ class Player {
   }
 
   reset() {
-    this.brushLayer.configure(this.project.settings);
     this.brushLayer.clear();
     this.simMs = 0;
     this.carryMs = 0;

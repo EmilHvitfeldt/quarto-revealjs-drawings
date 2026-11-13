@@ -76,10 +76,9 @@ function createLineLayer(options) {
   // Nothing to simulate or flush: lines are on the canvas as soon as they are drawn.
   function advance() {}
   function present() {}
-  function configure() {}
   function dispose() {
     lastPoints.clear();
   }
 
-  return { advance, clear, configure, dispose, draw, present, resize };
+  return { advance, clear, dispose, draw, present, resize };
 }
