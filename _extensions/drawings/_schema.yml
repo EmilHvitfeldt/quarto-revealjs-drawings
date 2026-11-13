@@ -1,0 +1,22 @@
+$schema: https://m.canouil.dev/quarto-wizard/assets/schema/v1/extension-schema.json
+shortcodes:
+  drawing:
+    description: Play a saved drawing as solid colored lines, one fragment per click.
+    arguments:
+      - name: path
+        type: string
+        required: true
+        description: Path to a saved drawing `.json` file made with the editor.
+    attributes:
+      auto:
+        type: boolean
+        default: false
+        description: Play the first segment as soon as the slide appears (one click less).
+      speed:
+        type: number
+        default: 1
+        description: Playback speed.
+      width:
+        type: string
+        default: "100%"
+        description: Any CSS width. The drawing keeps its 16:9 shape.

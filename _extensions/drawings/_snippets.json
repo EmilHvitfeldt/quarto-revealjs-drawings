@@ -1,0 +1,17 @@
+{
+  "Drawing": {
+    "prefix": "drawings:drawing",
+    "body": ["{{< drawing ${1:drawing.json} >}}"],
+    "description": "Play a saved drawing, one fragment per click"
+  },
+  "Drawing (auto)": {
+    "prefix": "drawings:drawing-auto",
+    "body": ["{{< drawing ${1:drawing.json} auto=\"true\" >}}"],
+    "description": "Play a saved drawing, starting the first segment automatically"
+  },
+  "Drawing (options)": {
+    "prefix": "drawings:drawing-options",
+    "body": ["{{< drawing ${1:drawing.json} auto=\"${2:true}\" speed=\"${3:1.5}\" width=\"${4:60%}\" >}}"],
+    "description": "Play a saved drawing with auto, speed and width options"
+  }
+}
