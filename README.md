@@ -33,6 +33,7 @@ Options, all optional:
 - `auto="true"`: play the first segment as soon as the slide appears (so it needs one click less)
 - `speed="1.5"`: playback speed
 - `width="60%"`: any CSS width; the drawing keeps its 16:9 shape
+- `wiggle="0.5"`: how hand-drawn the lines look. Each stroke drifts a little off true and its thickness varies slightly. `0` is perfectly smooth, `1` is the default, `2` is shakier. The wobble is seeded, so a drawing looks the same every time it plays
 
 While a segment plays, the drawing has `data-playing="true"`.
 

@@ -26,6 +26,11 @@
   // follows the square root of size, so big strokes get a bit thicker, not huge.
   const HALF_WIDTH = 0.0175;
   const DEFAULT_PRESSURE = 0.58;
+  const ASPECT = 16 / 9;
+  // Hand wobble at wiggle=1, in drawing heights: how far a line drifts off true,
+  // and how much its thickness swells and thins.
+  const WIGGLE_DRIFT = 0.002;
+  const WIGGLE_WIDTH = 0.12;
 
   const STYLE = `
 .drawing { position: relative; isolation: isolate; width: 100%; aspect-ratio: 16 / 9; margin: 0 auto; }
@@ -34,7 +39,43 @@
 .drawing-error { padding: 1em; border: 2px dashed #b3261e; color: #b3261e; font-size: 0.6em; }
 `;
 
-  function loadStrokes(data) {
+  /** A small seeded random generator, so the wobble is the same on every load and replay. */
+  function seeded(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /**
+   * Makes a stroke a little less perfect: every point drifts off by a smooth,
+   * slow wave (so the line bends rather than jitters), and the thickness varies
+   * a bit along the way. Waves depend on distance travelled, so the stroke looks
+   * the same however fast it was drawn.
+   */
+  function wiggleStroke(stroke, index, amount) {
+    const random = seeded(index * 7919 + 13);
+    const phase = () => random() * Math.PI * 2;
+    const [px, py, qx, qy, pw] = [phase(), phase(), phase(), phase(), phase()];
+    const TAU = Math.PI * 2;
+    let along = 0;
+    let previous = null;
+    for (const point of stroke.points) {
+      if (previous) along += Math.hypot((point.x - previous.x) * ASPECT, point.y - previous.y);
+      previous = { x: point.x, y: point.y };
+      const dx = Math.sin((TAU * along) / 0.14 + px) + 0.25 * Math.sin((TAU * along) / 0.08 + qx);
+      const dy = Math.sin((TAU * along) / 0.12 + py) + 0.25 * Math.sin((TAU * along) / 0.09 + qy);
+      point.x += (dx * WIGGLE_DRIFT * amount) / ASPECT;
+      point.y += dy * WIGGLE_DRIFT * amount;
+      point.width = 1 + WIGGLE_WIDTH * amount * Math.sin((TAU * along) / 0.09 + pw);
+    }
+  }
+
+  function loadStrokes(data, wiggle = 0) {
     const incoming = Array.isArray(data) ? data : data?.strokes;
     if (!Array.isArray(incoming)) throw new Error("not a saved drawing");
 
@@ -51,9 +92,11 @@
           x: point.x,
           y: point.y,
           pressure: point.pressure > 0 ? point.pressure : DEFAULT_PRESSURE,
+          width: 1,
           t: point.t ?? 0,
         })),
       };
+      if (wiggle > 0) wiggleStroke(stroke, strokes.length, wiggle);
       stroke.end = stroke.start + stroke.points[stroke.points.length - 1].t / stroke.speed;
       cursor = stroke.end + 300;
       strokes.push(stroke);
@@ -71,6 +114,7 @@
       this.deck = deck;
       this.auto = root.dataset.auto === "true";
       this.speed = Number(root.dataset.speed) > 0 ? Number(root.dataset.speed) : 1;
+      this.wiggle = Number(root.dataset.wiggle) >= 0 ? Number(root.dataset.wiggle) : 1;
       this.active = false;
       // How many segments have finished: 0 is the blank start.
       this.done = 0;
@@ -84,7 +128,7 @@
       this.sizeKey = "";
       this.tick = this.tick.bind(this);
 
-      const { strokes, cues } = loadStrokes(JSON.parse(root.querySelector("script.drawing-data").textContent));
+      const { strokes, cues } = loadStrokes(JSON.parse(root.querySelector("script.drawing-data").textContent), this.wiggle);
       this.strokes = strokes;
       this.cues = cues;
       this.endMs = strokes.reduce((end, stroke) => Math.max(end, stroke.end), 0);
@@ -141,7 +185,7 @@
           if (stroke.start + point.t / stroke.speed > ms) break;
           const x = point.x * width;
           const y = point.y * height;
-          const lineWidth = 2 * HALF_WIDTH * Math.sqrt(stroke.size) * (0.8 + point.pressure * 0.35) * height;
+          const lineWidth = 2 * HALF_WIDTH * Math.sqrt(stroke.size) * (0.8 + point.pressure * 0.35) * point.width * height;
           if (previous) {
             ctx.lineWidth = lineWidth;
             ctx.beginPath();

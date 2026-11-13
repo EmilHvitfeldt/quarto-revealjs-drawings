@@ -10,6 +10,7 @@
 --   auto="true"    play the first segment as soon as the slide appears
 --   speed="1.5"    playback speed
 --   width="60%"    any CSS width; the drawing keeps its 16:9 shape
+--   wiggle="0.5"   how hand-drawn the lines look: 0 is perfectly smooth, 1 is the default, 2 is shakier
 
 local counter = 0
 
@@ -67,6 +68,7 @@ return {
     local auto = option(kwargs, "auto", "false") == "true"
     local speed = option(kwargs, "speed", "1")
     local width = option(kwargs, "width", "100%")
+    local wiggle = option(kwargs, "wiggle", "1")
 
     counter = counter + 1
     local id = "drawing-" .. counter
@@ -79,8 +81,8 @@ return {
 
     local html = {
       string.format(
-        '<div class="drawing" id="%s" data-auto="%s" data-speed="%s" style="width: %s">',
-        id, tostring(auto), escape_attr(speed), escape_attr(width)
+        '<div class="drawing" id="%s" data-auto="%s" data-speed="%s" data-wiggle="%s" style="width: %s">',
+        id, tostring(auto), escape_attr(speed), escape_attr(wiggle), escape_attr(width)
       ),
       '<script type="application/json" class="drawing-data">' .. json .. "</script>",
       "</div>",
