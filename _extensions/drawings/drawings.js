@@ -261,10 +261,11 @@
 
     /**
      * The segment that plays by itself has no fragment of its own, so Back would
-     * leave the slide. While it is drawing, Back undraws it instead.
+     * leave the slide. Whether it is still drawing or already finished, Back
+     * undraws it instead, and only a Back on the blank slide leaves.
      */
     get canRewind() {
-      return this.active && this.auto && this.done === 1 && this.isPlaying;
+      return this.active && this.auto && this.done === 1 && !this.rewound && this.nowMs > 0;
     }
 
     rewind() {
@@ -333,8 +334,8 @@
       // Capture phase runs before Reveal's handlers, so these can claim a press.
       // Next while a drawing is still drawing finishes it first, and only the
       // following press moves on. Next after Back undrew the first segment draws
-      // it again. Back while the first segment is drawing undraws it instead of
-      // leaving the slide. (Back during later segments hides their fragment, which
+      // it again. Back on the first segment, drawing or finished, undraws it
+      // instead of leaving the slide. (Back during later segments hides their fragment, which
       // Reveal does and fragmentChanged turns into an undraw.)
       const onNext = () => {
         const rewound = embeds.filter((embed) => embed.active && embed.rewound);
