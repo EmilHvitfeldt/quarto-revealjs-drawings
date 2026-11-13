@@ -362,7 +362,8 @@ kbd {
   width: 42px;
 }
 
-.transport #add-cue {
+.transport #add-cue,
+.transport #focus-toggle {
   width: auto;
   padding: 4px 10px;
   white-space: nowrap;
