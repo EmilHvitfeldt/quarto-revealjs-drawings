@@ -1,8 +1,8 @@
 // Color choices for the pen: one row of the Flexoki palette (https://github.com/kepano/flexoki),
-// the 300 shade of gray and each of the 8 hues.
+// pure black and the 300 shade of each of the 8 hues.
 // Classic script: shares one global scope with the other files.
 const penColors = [
-  ["Gray 300", "B7B5AC"],
+  ["Black", "000000"],
   ["Red 300", "E8705F"],
   ["Orange 300", "EC8B49"],
   ["Yellow 300", "DFB431"],
