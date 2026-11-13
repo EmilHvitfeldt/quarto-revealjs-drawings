@@ -41,6 +41,19 @@ The JSON is inlined into the page, so a deck with `embed-resources: true` stays 
 
 Don't keep your drawings in a folder called `drawings` next to the deck: Quarto would mistake it for the plugin directory.
 
+## Making drawings
+
+`editor/index.html` is a small editor for recording drawings. Open it directly in a browser (or serve the folder), no build step or server needed. It draws solid colored lines, the same way the extension plays them, so what you see in the editor is what the slide shows.
+
+- **Draw** (D): draw on the canvas. Every stroke is recorded with its position, pressure and timing, and the timeline plays while you draw.
+- **Select** (V): click a stroke to change its color, size, start time or speed, drag it to move it, or delete or duplicate it. You can also click its clip in the timeline.
+- **Curve** (C): reshape a stroke's path by dragging its anchors and handles.
+- **Timeline**: drag a clip to retime a stroke, drag its right edge to stretch it, click the ruler to scrub.
+- **Transport**: play/pause (Space), jump to start/end (Home/End), step a frame (arrows, Shift for one second), loop, 0.25x to 2x.
+- **Cues**: press `+ Cue` (K) to drop a stopping point at the playhead. The extension pauses there and plays the next segment on the next click.
+- **Tracing image**: choose, drop or paste an image to draw over. It is a view aid only and isn't saved.
+- **Project**: undo/redo, and save or open a `.json` file. Save the file next to your deck and point `{{< drawing >}}` at it.
+
 ## Drawing format
 
 ```json
@@ -59,7 +72,7 @@ Don't keep your drawings in a folder called `drawings` next to the deck: Quarto 
 }
 ```
 
-`x` and `y` are fractions of the drawing (0 to 1), `t` is milliseconds since the stroke began, and `start` is when it begins on the timeline. Colors are drawn fully opaque (any `a` is ignored). Line width follows `size` and `pressure`. Files saved from the watercolor drawing studio work as they are, with the watercolor brush types drawn as plain lines.
+`x` and `y` are fractions of the drawing (0 to 1), `t` is milliseconds since the stroke began, and `start` is when it begins on the timeline. Colors are drawn fully opaque (any `a` is ignored). Line width follows `size` and `pressure`. Files saved from the editor have exactly this shape. Files from other tools that carry extra fields (like brush types) work too: the extra fields are ignored and everything is drawn as plain lines.
 
 ## Example
 
