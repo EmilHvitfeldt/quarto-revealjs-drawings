@@ -71,7 +71,15 @@ return {
     counter = counter + 1
     local id = "drawing-" .. counter
 
-    local cues = type(data.cues) == "table" and #data.cues or 0
+    -- Count cues the way drawings.js does: only those after time 0 are real.
+    local cues = 0
+    if type(data.cues) == "table" then
+      for _, cue in ipairs(data.cues) do
+        if type(cue) == "table" and type(cue.ms) == "number" and cue.ms > 0 then
+          cues = cues + 1
+        end
+      end
+    end
     local steps = cues + 1 - (auto and 1 or 0)
 
     -- "</" would end the script element early. "\/" is the same thing in JSON.
