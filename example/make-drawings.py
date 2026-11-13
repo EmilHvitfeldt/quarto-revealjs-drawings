@@ -25,6 +25,9 @@ PEN_SIZE = 0.1
 # How fast the pen moves, in drawing heights per second, and the pauses between strokes.
 PEN_SPEED = 0.55
 STROKE_GAP_MS = 130
+# Hand wobble, in drawing heights: slow drift along each stroke, plus a fine tremor.
+WOBBLE = 0.0028
+TREMOR = 0.00025
 CUE_GAP_MS = 450
 
 # Glyphs: (width in units of the glyph height, strokes). Points are (x, y) in a
@@ -185,8 +188,30 @@ def arc_length(points):
     return sum(math.dist(a, b) for a, b in zip(points, points[1:]))
 
 
+def wiggle(points, rng):
+    """Bends a stroke the way a hand would: two slow waves of drift (different
+    wavelengths, random phase, perpendicular to the stroke) plus a fine tremor.
+    Returns the new points and a smooth pressure value for each."""
+    total = arc_length(points)
+    waves = [(rng.uniform(0.09, 0.16), rng.uniform(0, math.tau), rng.uniform(0.5, 1.0)),
+             (rng.uniform(0.15, 0.3), rng.uniform(0, math.tau), rng.uniform(0.6, 1.2))]
+    pressure_wave = (rng.uniform(0.1, 0.25), rng.uniform(0, math.tau))
+    out, pressures, walked = [], [], 0.0
+    for i, (x, y) in enumerate(points):
+        if i:
+            walked += math.dist(points[i - 1], (x, y))
+        a, b = points[max(i - 1, 0)], points[min(i + 1, len(points) - 1)]
+        length = math.dist(a, b) or 1
+        nx, ny = -(b[1] - a[1]) / length, (b[0] - a[0]) / length  # unit normal
+        drift = sum(amp * math.sin(math.tau * walked / wavelength + phase) for wavelength, phase, amp in waves)
+        offset = WOBBLE * drift + rng.gauss(0, TREMOR)
+        out.append((x + nx * offset, y + ny * offset))
+        pressures.append(0.58 + 0.08 * math.sin(math.tau * walked / pressure_wave[0] + pressure_wave[1]))
+    return out, pressures
+
+
 def to_project(layout):
-    """Turns placed strokes into a saved drawing: times each stroke and works out the cue times."""
+    """Turns placed strokes into a saved drawing: wobbles and times each stroke and works out the cue times."""
     strokes, cues, clock = [], [], 0.0
     cue_at = sorted(layout.cues)
     for index, stroke in enumerate(layout.strokes):
@@ -194,15 +219,18 @@ def to_project(layout):
             cues.append(round(clock - STROKE_GAP_MS + 40))
             clock += CUE_GAP_MS
             cue_at.pop(0)
-        points = stroke["points"]
+        points, pressures = wiggle(stroke["points"], layout.rng)
         total = arc_length(points)
         duration = max(90.0, total / PEN_SPEED * 1000)
         walked, timed = 0.0, []
         for i, (x, y) in enumerate(points):
             if i:
                 walked += math.dist(points[i - 1], (x, y))
-            timed.append({"x": round(x / ASPECT, 5), "y": round(y, 5), "pressure": 0.58,
-                          "t": round(walked / total * duration if total else 0, 1)})
+            u = walked / total if total else 0
+            # The pen eases in and out a little instead of moving at one speed.
+            eased = 0.7 * u + 0.3 * (0.5 - 0.5 * math.cos(math.pi * u))
+            timed.append({"x": round(x / ASPECT, 5), "y": round(y, 5), "pressure": round(pressures[i], 3),
+                          "t": round(eased * duration, 1)})
         strokes.append({"id": index + 1, "start": round(clock), "speed": 1, "size": PEN_SIZE,
                         "color": stroke["color"], "points": timed})
         clock += duration + STROKE_GAP_MS
