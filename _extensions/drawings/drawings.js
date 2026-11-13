@@ -123,7 +123,8 @@
       ctx.lineJoin = "round";
 
       for (const stroke of this.strokes) {
-        if (stroke.start > ms) continue;
+        // A stroke that hasn't begun yet leaves nothing, not even its first dot.
+        if (stroke.start >= ms) continue;
         const { r, g, b } = stroke.color;
         const color = `rgb(${r}, ${g}, ${b})`;
         ctx.strokeStyle = color;

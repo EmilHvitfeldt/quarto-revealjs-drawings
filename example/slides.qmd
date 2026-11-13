@@ -1,27 +1,42 @@
 ---
 pagetitle: Drawings in slides
 format:
-  letterbox-revealjs:
-    embed-resources: true
+  revealjs:
     width: 1280
     height: 720
+    margin: 0
+    controls: false
     progress: false
-    menu: false
-    theme: [default, style.scss]
 revealjs-plugins:
   - drawings
 ---
 
-{{< drawing data/2.json >}}
+{{< drawing data/pythagoras.json auto=true >}}
+
+::: notes
+No stopping points: this one plays through on its own as soon as the slide appears.
+:::
 
 ---
 
-{{< drawing data/3.json auto=true >}}
+{{< drawing data/quadratic.json auto=true >}}
+
+::: notes
+Two stopping points, so three segments. The first plays by itself (auto=true), then one click for the square root and one for the denominator.
+:::
 
 ---
 
-{{< drawing data/5.json auto=true speed=2 >}}
+{{< drawing data/euler.json >}}
+
+::: notes
+Two stopping points and no auto: the slide starts blank and each click writes the next piece.
+:::
 
 ---
 
-{{< drawing data/kitty.json auto=true >}}
+{{< drawing data/sum.json auto=true speed=1.5 >}}
+
+::: notes
+Stopping points and a faster pen.
+:::
