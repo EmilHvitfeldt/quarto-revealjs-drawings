@@ -43,7 +43,7 @@ Don't keep your drawings in a folder called `drawings` next to the deck: Quarto 
 
 ## Making drawings
 
-`editor/index.html` is a small editor for recording drawings. Open it directly in a browser (or serve the folder), no build step or server needed. It draws solid colored lines, the same way the extension plays them, so what you see in the editor is what the slide shows.
+`_extensions/drawings/editor/index.html` is a small editor for recording drawings. It installs with the extension, so once you have run `quarto add` it is in your project at `_extensions/drawings/editor/index.html`. Open it directly in a browser (or serve the folder), no build step or server needed. It draws solid colored lines, the same way the extension plays them, so what you see in the editor is what the slide shows.
 
 - **Draw** (D): draw on the canvas. Every stroke is recorded with its position, pressure and timing, and the timeline plays while you draw.
 - **Select** (V): click a stroke to change its color, size, start time or speed, drag it to move it, or delete or duplicate it. You can also click its clip in the timeline.

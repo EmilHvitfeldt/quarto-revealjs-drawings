@@ -1,5 +1,5 @@
 // The editor's brush: solid colored lines on a plain Canvas 2D, drawn exactly
-// the way the Quarto extension (../_extensions/drawings/drawings.js) draws them,
+// the way the Quarto extension (../../drawings.js) draws them,
 // so what you see here is what the slide plays.
 //
 // The Player (player.js) feeds it one point at a time, in order, and replays
