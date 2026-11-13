@@ -166,14 +166,18 @@
       this.canvas.height = size.height;
     }
 
-    /** Entered the slide: show where the fragments say we are. A drawing that plays by itself starts now. */
-    enter() {
+    /**
+     * Entered the slide: show where the fragments say we are. A drawing that
+     * plays by itself starts now, unless we came back from the next slide, where
+     * it should be as we left it: finished.
+     */
+    enter(cameBack = false) {
       const done = this.segmentsDone;
       this.active = true;
       this.rewound = false;
       this.layout();
       this.goTo(done, false);
-      if (this.auto && done === 1) {
+      if (this.auto && done === 1 && !cameBack) {
         this.goTo(0, false);
         this.goTo(1, true);
       }
@@ -300,9 +304,9 @@
 
       const forStep = (fragment) => embeds.find((embed) => embed.root.id === fragment.dataset.drawing);
 
-      function showSlide(slide) {
+      function showSlide(slide, cameBack = false) {
         for (const embed of embeds) {
-          if (embed.slide === slide) embed.enter();
+          if (embed.slide === slide) embed.enter(cameBack);
           else if (embed.active) embed.leave();
         }
       }
@@ -312,7 +316,11 @@
       deck.on("ready", (event) => {
         if (!printing) showSlide(event.currentSlide);
       });
-      deck.on("slidechanged", (event) => showSlide(event.currentSlide));
+      deck.on("slidechanged", (event) => {
+        const from = deck.getIndices(event.previousSlide);
+        const to = deck.getIndices(event.currentSlide);
+        showSlide(event.currentSlide, to.h < from.h || (to.h === from.h && to.v < from.v));
+      });
 
       const onFragments = (shown) => (event) => {
         for (const fragment of event.fragments ?? []) {
