@@ -130,10 +130,11 @@ function syncInspector() {
     brushHint.textContent = "Applies to new strokes. Use Select to pick a stroke and edit it.";
   }
 
-  for (const swatch of paletteElement.children) {
+  for (const swatch of paletteElement.querySelectorAll("button.swatch")) {
     const color = penColors[Number(swatch.dataset.index)];
     swatch.setAttribute("aria-pressed", String(sameColor(color, source.color)));
   }
+  syncCustomSwatch(source.color);
   sizeSlider.value = String(source.size);
   $("size-output").textContent = source.size.toFixed(2);
 
@@ -171,6 +172,30 @@ penColors.forEach((color, index) => {
   button.addEventListener("click", () => setBrush({ color: { ...color } }, "color"));
   paletteElement.appendChild(button);
 });
+
+// A last swatch wraps the browser's native color picker for any color outside the palette.
+const customSwatch = document.createElement("label");
+customSwatch.className = "swatch custom";
+customSwatch.title = "Custom color";
+const customInput = document.createElement("input");
+customInput.type = "color";
+customInput.setAttribute("aria-label", "Custom color");
+customSwatch.appendChild(customInput);
+paletteElement.appendChild(customSwatch);
+
+const toHex = (c) => "#" + [c.r, c.g, c.b].map((v) => v.toString(16).padStart(2, "0")).join("");
+
+customInput.addEventListener("input", () => {
+  const value = parseInt(customInput.value.slice(1), 16);
+  setBrush({ color: { r: (value >> 16) & 255, g: (value >> 8) & 255, b: value & 255 } }, "color");
+});
+
+function syncCustomSwatch(color) {
+  const isCustom = !penColors.some((c) => sameColor(c, color));
+  customInput.value = toHex(color);
+  customSwatch.setAttribute("aria-pressed", String(isCustom));
+  customSwatch.style.background = isCustom ? toHex(color) : "";
+}
 
 sizeSlider.addEventListener("input", () => setBrush({ size: Number(sizeSlider.value) }, "size"));
 
